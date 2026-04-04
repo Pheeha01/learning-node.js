@@ -34,6 +34,8 @@ model Company {
   target_of             CompanyTargets[] @relation("TargetCompany")
   matches               CompanyMatches[] @relation("Company1")
   matched_with          CompanyMatches[] @relation("Company2")
+  notifications         Notification[] @relation("CompanyNotifications")
+  triggered_notifications Notification[] @relation("RelatedCompanyNotifications")
 }
 model Industry {
   industry_id Int @id @default(autoincrement())
@@ -87,6 +89,19 @@ model CompanyMatches {
   company1 Company @relation("Company1", fields: [company1_id], references: [company_id])
   company2 Company @relation("Company2", fields: [company2_id], references: [company_id])
   @@id([company1_id, company2_id])
+}
+model Notification {
+  notification_id     Int      @id @default(autoincrement())
+  company_id          Int
+  company             Company  @relation("CompanyNotifications", fields: [company_id], references: [company_id])
+  type                String   // "connection_request", "match", "system_alert"
+  message             String? // the generic message we will have requests or matches
+  related_company_id  Int?
+  related_company     Company? @relation("RelatedCompanyNotifications", fields: [related_company_id], references: [company_id])
+  created_at          DateTime @default(now())
+  is_read             Boolean  @default(false)
+
+  @@unique([company_id, related_company_id, type]) // optional uniqueness rule
 }
 
 
